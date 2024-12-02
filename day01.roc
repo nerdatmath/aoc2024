@@ -33,7 +33,7 @@ unzip: List (a, b) -> (List a, List b)
 unzip = \list ->
     list
     |> List.walk ([], [])
-        \(xs, ys), (x, y) -> (List.prepend xs x, List.prepend ys y)
+        \(xs, ys), (x, y) -> (List.append xs x, List.append ys y)
 
 part1: Str -> Result Str _
 part1 = \input ->
@@ -54,19 +54,23 @@ counts = \list ->
 
 expect counts [1, 1] == Dict.single 1 2
 
-getDefault : Dict k v, k, v -> v
-getDefault = \dict, key, default -> Dict.get dict key |> Result.withDefault default
+getOrDie : Dict k v, k -> v
+getOrDie = \dict, key ->
+    when Dict.get dict key is
+        Err _ -> crash "unreached"
+        Ok value -> value
 
-dictProduct = \d1, d2, f ->
+dictIntersectionWalk = \d1, d2, state, f ->
     k1 = Dict.keys d1 |> Set.fromList
     k2 = Dict.keys d2 |> Set.fromList
     Set.intersection k1 k2
-    |> Set.walk (Dict.empty {}) \d, k ->
-        Dict.insert d k (f (getDefault d1 k 0) (getDefault d2 k 0))
+    |> Set.walk state \s, k ->
+        f s k (getOrDie d1 k) (getOrDie d2 k)
 
 part2 = \input ->
     String.parseStr parser input
     |> Result.map \(a, b) ->
-        dictProduct (counts a) (counts b) Num.mul
-        |> Dict.walk 0 \sum, k, v -> sum + k*v
+        dictIntersectionWalk (counts a) (counts b) 0
+            \sum, k, c1, c2 ->
+                sum + k * c1 * c2
         |> Num.toStr
