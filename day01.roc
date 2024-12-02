@@ -8,13 +8,15 @@ app [part1, part2] {
 import parser.Parser
 import parser.String
 
-examplePart1 = 
-    """3   4
+examplePart1 = Str.trim
+    """
+    3   4
     4   3
     2   5
     1   3
     3   9
-    3   3"""
+    3   3
+    """
 
 expect part1 examplePart1 == Ok "11"
 
