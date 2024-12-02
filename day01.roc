@@ -27,10 +27,13 @@ parser =
     |> Parser.skip (Parser.oneOrMore (String.codeunit ' '))
     |> Parser.keep String.digits
     |> Parser.sepBy (String.codeunit '\n')
-    |> Parser.map \pairs -> (List.map pairs fst, List.map pairs snd)
+    |> Parser.map unzip
 
-fst = \(a, _) -> a
-snd = \(_, b) -> b
+unzip: List (a, b) -> (List a, List b)
+unzip = \list ->
+    list
+    |> List.walk ([], [])
+        \(xs, ys), (x, y) -> (List.prepend xs x, List.prepend ys y)
 
 part1: Str -> Result Str _
 part1 = \input ->
