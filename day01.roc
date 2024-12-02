@@ -3,20 +3,9 @@ app [part1, part2] {
     parser: "https://github.com/lukewilliamboswell/roc-parser/releases/download/0.8.0/PCkJq9IGyIpMfwuW-9hjfXd6x-bHb1_OZdacogpBcPM.tar.br",
 }
 
+import Bag
 import parser.Parser
 import parser.String
-
-examplePart1 = Str.trim
-    """
-    3   4
-    4   3
-    2   5
-    1   3
-    3   9
-    3   3
-    """
-
-expect part1 examplePart1 == Ok "11"
 
 parser : Parser.Parser _ (List U64, List U64)
 parser =
@@ -33,6 +22,18 @@ unzip = \list ->
     |> List.walk ([], [])
         \(xs, ys), (x, y) -> (List.append xs x, List.append ys y)
 
+examplePart1 = Str.trim
+    """
+    3   4
+    4   3
+    2   5
+    1   3
+    3   9
+    3   3
+    """
+
+expect part1 examplePart1 == Ok "11"
+
 part1: Str -> Result Str _
 part1 = \input ->
     String.parseStr parser input
@@ -45,30 +46,12 @@ examplePart2 = examplePart1
 
 expect part2 examplePart2 == Ok "31"
 
-counts: List U64 -> Dict U64 U64
-counts = \list ->
-    List.walk list (Dict.empty {}) \dict, item ->
-        Dict.update dict item \existing -> Ok ((Result.withDefault existing 0) + 1)
-
-expect counts [1, 1] == Dict.single 1 2
-
-getOrDie : Dict k v, k -> v
-getOrDie = \dict, key ->
-    when Dict.get dict key is
-        Err _ -> crash "unreached"
-        Ok value -> value
-
-dictIntersectionWalk = \d1, d2, state, f ->
-    k1 = Dict.keys d1 |> Set.fromList
-    k2 = Dict.keys d2 |> Set.fromList
-    Set.intersection k1 k2
-    |> Set.walk state \s, k ->
-        f s k (getOrDie d1 k) (getOrDie d2 k)
-
+part2: Str -> Result Str _
 part2 = \input ->
     String.parseStr parser input
-    |> Result.map \(a, b) ->
-        dictIntersectionWalk (counts a) (counts b) 0
-            \sum, k, c1, c2 ->
-                sum + k * c1 * c2
+    |> Result.map \(xs, ys) ->
+        Bag.combine (Bag.fromList xs) (Bag.fromList ys) Num.mul
+        |> Bag.map \k, count -> k*count
+        |> Bag.values
+        |> List.sum
         |> Num.toStr
