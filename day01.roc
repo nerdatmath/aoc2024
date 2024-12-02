@@ -45,10 +45,7 @@ expect part2 examplePart2 == Ok "31"
 counts: List U64 -> Dict U64 U64
 counts = \list ->
     List.walk list (Dict.empty {}) \dict, item ->
-        Dict.update dict item \existing ->
-            when existing is
-                Err Missing -> Ok 1
-                Ok n -> Ok (n+1)
+        Dict.update dict item \existing -> Ok ((Result.withDefault existing 0) + 1)
 
 expect counts [1, 1] == Dict.single 1 2
 
