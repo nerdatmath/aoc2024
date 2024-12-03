@@ -37,10 +37,11 @@ expect part1 examplePart1 == Ok "11"
 part1: Str -> Result Str _
 part1 = \input ->
     String.parseStr parser input
-    |> Result.map \(a, b) ->
-        List.map2 (List.sortAsc a) (List.sortAsc b) Num.absDiff
-        |> List.sum
-        |> Num.toStr
+    |> try
+    |> \(xs, ys) -> List.map2 (List.sortAsc xs) (List.sortAsc ys) Num.absDiff
+    |> List.sum
+    |> Num.toStr
+    |> Ok
 
 examplePart2 = examplePart1
 
@@ -49,9 +50,10 @@ expect part2 examplePart2 == Ok "31"
 part2: Str -> Result Str _
 part2 = \input ->
     String.parseStr parser input
-    |> Result.map \(xs, ys) ->
-        Bag.combine (Bag.fromList xs) (Bag.fromList ys) Num.mul
-        |> Bag.map \k, count -> k*count
-        |> Bag.values
-        |> List.sum
-        |> Num.toStr
+    |> try
+    |> \(xs, ys) -> Bag.combine (Bag.fromList xs) (Bag.fromList ys) Num.mul
+    |> Bag.map \k, count -> k*count
+    |> Bag.values
+    |> List.sum
+    |> Num.toStr
+    |> Ok
